@@ -1,0 +1,61 @@
+From this you can generate the diagram in any text editor, which suppport markdown.
+Enter the following code:
+``` mermaid
+ *Here*
+```
+
+sequenceDiagram
+	box Business Logics
+		participant saved-settings.ser
+	end
+
+	box GUI of the application
+		participant SavedFrame
+		participant MainFrame
+		participant WavesFrame
+	end
+
+	box Business Logics
+		participant PerlinNoise2D
+	end
+
+	loop Navigation loop between 2 major windows
+		MainFrame-->>+SavedFrame: Saved button pressed
+
+		SavedFrame->>+saved-settings.ser: Read data from the ser file
+		critical IO operations
+			option Exception is caught
+				saved-settings.ser->>SavedFrame: Return information about a failure
+			option Data is read successfully
+				saved-settings.ser->>-SavedFrame: Returned the data
+		end
+
+		SavedFrame-->>-MainFrame: Main button pressed
+	end
+
+	critical Ensure the correctness of parameters
+		option Invalid parameters passed
+			MainFrame-->MainFrame: Error pop up window
+		option Correct parameters passed
+			MainFrame-->>+saved-settings.ser: Save button pressed
+
+			critical IO operations
+				option Exception is caught
+					saved-settings.ser->>SavedFrame: Return information about a failure
+				option Data is written successfully
+					saved-settings.ser->>-SavedFrame: Return nothing
+			end
+	end
+
+	critical Ensure the correctness of parameters
+		option Invalid parameters passed
+			MainFrame-->MainFrame: Error pop up window
+		option Correct parameters passed
+			MainFrame-->>+WavesFrame: Load button pressed
+	end
+
+	WavesFrame->>+PerlinNoise2D: Render the gradient waves
+
+	PerlinNoise2D->>-WavesFrame: The WavesFrame window is closed
+	WavesFrame-->>-MainFrame: Close the WavesFrame window
+	
